@@ -87,14 +87,8 @@ export async function POST(request: NextRequest) {
         } else {
           response += "\nNo profiles found.";
         }
-      } catch (apiError) {
-        console.error('Apify API error:', apiError);
-        if (apiError.message === "operation_timeout") {
-          return NextResponse.json({
-            response_type: 'in_channel',
-            text: "⚠️ Operation timed out. The LinkedIn profile request took too long to complete."
-          });
-        }
+      } catch (e) {
+        console.error('Apify API error:', e);
         response = "⚠️ Error fetching LinkedIn profiles. Please check server logs.";
       }
     } else if (text.includes('metrics')) {
