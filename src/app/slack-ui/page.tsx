@@ -1,4 +1,4 @@
- 'use client';
+'use client';
 
 import { useState } from 'react';
 
@@ -6,15 +6,23 @@ export default function SlackUI() {
   const [text, setText] = useState('');
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
+  const [commandType, setCommandType] = useState('linkedin');
+  const [linkedinUrl, setLinkedinUrl] = useState('https://www.linkedin.com/in/oleksandr-steciuk-70992b356/');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     
+    // Construct the command text based on the selected type
+    let commandText = commandType;
+    if (commandType === 'linkedin') {
+      commandText = `linkedin ${linkedinUrl}`;
+    }
+    
     try {
       const formData = new FormData();
-      formData.append('command', "command");
-      formData.append('text', text);
+      formData.append('command', '/service');
+      formData.append('text', commandText);
       formData.append('user_id', 'U12345678');
       
       const res = await fetch('/api/slack/command', {
@@ -37,16 +45,30 @@ export default function SlackUI() {
       
       <form onSubmit={handleSubmit} className="mb-6">
         <div className="mb-4">
+          <label className="block mb-2 font-medium">Command Type:</label>
           <select 
-            value={text} 
-            onChange={(e) => setText(e.target.value)}
-            className="w-full p-2 border rounded"
+            value={commandType} 
+            onChange={(e) => setCommandType(e.target.value)}
+            className="w-full p-2 border rounded mb-3"
           >
-            <option value="https://www.linkedin.com/in/oleksandr-steciuk-70992b356/">linkedin</option>
+            <option value="linkedin">LinkedIn Profile</option>
             <option value="restart">Restart Service</option>
             <option value="metrics">View Metrics</option>
             <option value="help">Help</option>
           </select>
+          
+          {commandType === 'linkedin' && (
+            <div>
+              <label className="block mb-2 font-medium">LinkedIn URL:</label>
+              <input
+                type="text"
+                value={linkedinUrl}
+                onChange={(e) => setLinkedinUrl(e.target.value)}
+                className="w-full p-2 border rounded"
+                placeholder="https://www.linkedin.com/in/username/"
+              />
+            </div>
+          )}
         </div>
         
         <button
@@ -59,7 +81,7 @@ export default function SlackUI() {
       </form>
       
       {response && (
-        <div className="p-4 bg-black-100 rounded-lg whitespace-pre-line">
+        <div className="p-4 bg-gray-100 rounded-lg whitespace-pre-line">
           {response}
         </div>
       )}
