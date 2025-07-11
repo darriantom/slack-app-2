@@ -59,10 +59,19 @@ export async function POST(request: NextRequest) {
         
         response = "🔄 Starting LinkedIn profile fetch...";
         
-        // Call the Apify actor with timeout
+        // Define the type for the Apify run result
+        type ApifyRunResult = {
+          id: string;
+          actId: string;
+          defaultDatasetId: string;
+          defaultKeyValueStoreId: string;
+          [key: string]: any;
+        };
+        
+        // Call the Apify actor with timeout and proper typing
         const run = await Promise.race([
-          client.actor("2SyF0bVxmgGr8IVCZ").call(input),
-          new Promise((_, reject) => 
+          client.actor("2SyF0bVxmgGr8IVCZ").call(input) as Promise<ApifyRunResult>,
+          new Promise<never>((_, reject) => 
             setTimeout(() => reject(new Error("operation_timeout")), timeout)
           )
         ]);
