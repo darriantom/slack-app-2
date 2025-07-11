@@ -21,6 +21,7 @@ export interface LinkedInProfile {
       Work_email: string;
       Phone_number: string;
       Company_domain: string;
+      Email_status: string;
     }
   }
   

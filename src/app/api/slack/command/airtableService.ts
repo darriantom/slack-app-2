@@ -1,4 +1,5 @@
 import { LinkedInProfile, AirtableRecord } from './types';
+import { validateEmail } from './emailService';
 
 export async function saveToAirtable(profile: LinkedInProfile): Promise<boolean> {
   try {
@@ -15,7 +16,15 @@ export async function saveToAirtable(profile: LinkedInProfile): Promise<boolean>
       });
       return false;
     }
-    
+
+    let emailValidationResult = { isValid: false };
+    let emailStatus = "Not found";
+    if (profile.email) {
+      emailValidationResult = await validateEmail(profile.email);
+      emailStatus = emailValidationResult.isValid ? "✓ Valid" : "❌ Invalid";
+      console.log(`Email ${profile.email} validation result:`, emailValidationResult.isValid ? 'Valid' : 'Invalid');
+    }
+
     // Format the data for Airtable
     const record: AirtableRecord = {
       fields: {
@@ -25,7 +34,8 @@ export async function saveToAirtable(profile: LinkedInProfile): Promise<boolean>
         LinkedIn_URL: profile.linkedinUrl || '',
         Work_email: profile.email || '',
         Phone_number: profile.mobileNumber || '',
-        Company_domain: profile.companyWebsite || ''
+        Company_domain: profile.companyWebsite || '',
+        Email_status: emailStatus || ''
       }
     };
     

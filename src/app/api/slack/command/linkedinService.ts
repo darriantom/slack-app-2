@@ -1,6 +1,7 @@
 import { ApifyClient } from 'apify-client';
 import { LinkedInProfile, ApifyRunResult } from './types';
 import { saveToAirtable } from './airtableService';
+import { validateEmail } from './emailService';
 
 export function extractLinkedInUrl(text: string): string | null {
   const urlMatch = text.match(/(https?:\/\/[^\s]*linkedin\.com\/in\/[^\s]*)/i);
@@ -34,6 +35,12 @@ export async function processLinkedInProfile(profileUrl: string): Promise<{
     if (items && items.length > 0) {
       const profile = items[0] as LinkedInProfile;
       
+      let emailStatus = "Not found";
+      if (profile.email) {
+        const emailValidation = await validateEmail(profile.email);
+        emailStatus = emailValidation.isValid ? "✓ Valid" : "❌ Invalid";
+      }
+      console.log(emailStatus)
       // Save the profile to Airtable
       const success = await saveToAirtable(profile);
       
@@ -43,6 +50,7 @@ export async function processLinkedInProfile(profileUrl: string): Promise<{
       response += `*Title:* ${profile.headline || 'N/A'}\n`;
       if (profile.companyName) response += `*Company:* ${profile.companyName}\n`;
       if (profile.location) response += `*Location:* ${profile.location}\n`;
+      if (profile.email) response += `*Email:* ${profile.email} (${emailStatus})\n`;
       
       if (success) {
         response += `\nProfile saved to Airtable ✓`;
