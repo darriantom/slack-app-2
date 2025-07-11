@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     let response = '';
     
     // Example service-related command processing based on input text
-    if (text.includes('linkedin')) {
+    if (text.includes('restart')) {
       try {
         const client = new ApifyClient({
             token: process.env.APIFY_API_TOKEN || '',
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
         console.error('Apify API error:', apiError);
         response = "⚠️ Error fetching LinkedIn profile. Please check that your APIFY_API_TOKEN is set correctly in environment variables.";
       }
-    } else if (text.includes('restart')) {
+    } else if (text.includes('linkedin')) {
       try {
         const client = new ApifyClient({
             token: process.env.APIFY_API_TOKEN,
@@ -87,8 +87,7 @@ export async function POST(request: NextRequest) {
         // Prepare Actor input
         const input = {
             "profileUrls": [
-                "https://www.linkedin.com/in/williamhgates",
-                "http://www.linkedin.com/in/jeannie-wyrick-b4760710a"
+                text,
             ]
         };
         

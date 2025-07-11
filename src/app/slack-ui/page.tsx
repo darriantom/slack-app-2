@@ -42,7 +42,7 @@ export default function SlackUI() {
             onChange={(e) => setText(e.target.value)}
             className="w-full p-2 border rounded"
           >
-            <option value="linkedin">linkedin</option>
+            <option value="https://www.linkedin.com/in/oleksandr-steciuk-70992b356/">linkedin</option>
             <option value="restart">Restart Service</option>
             <option value="metrics">View Metrics</option>
             <option value="help">Help</option>
