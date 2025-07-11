@@ -28,35 +28,22 @@ export async function POST(request: NextRequest) {
         response = "Service restart command received.";
     } else if (text.includes('linkedin')) {
       try {
-        // Check if we have a LinkedIn URL in the text
-        const hasLinkedInUrl = text.match(/(https?:\/\/[^\s]+linkedin\.com\/in\/[^\s]+)/);
+        // Extract the LinkedIn URL with a more flexible regex pattern
+        // This pattern matches any URL containing linkedin.com/in/
+        const urlMatch = text.match(/(https?:\/\/[^\s]*linkedin\.com\/in\/[^\s]*)/i);
+        const profileUrl = urlMatch ? urlMatch[0] : null;
         
-        if (!hasLinkedInUrl) {
+        console.log('LinkedIn URL found:', profileUrl);
+        
+        if (!profileUrl) {
           return NextResponse.json({
             response_type: 'in_channel',
             text: "⚠️ Please provide a valid LinkedIn profile URL. Example: `/service linkedin https://www.linkedin.com/in/username`"
           });
         }
         
-        // Start the asynchronous processing in the background
-        // We can't await this because Slack requires a response within 3 seconds
-        const processorFormData = new FormData();
-        processorFormData.append('text', text);
-        processorFormData.append('response_url', responseUrl);
-        
-        // Fire and forget - don't await
-        fetch('/api/slack/linkedin-processor', {
-          method: 'POST',
-          body: processorFormData,
-        }).catch(err => {
-          console.error('Error starting LinkedIn processor:', err);
-        });
-        
-        // Immediately return a response to Slack
-        return NextResponse.json({
-          response_type: 'in_channel',
-          text: "🔄 Processing LinkedIn profile request. This may take up to 2 minutes..."
-        });
+        // For now, we'll just acknowledge receiving the URL since the linkedin-processor endpoint was deleted
+        response = `✅ LinkedIn profile URL received: ${profileUrl}\n\nProfile processing is currently disabled to prevent timeouts. Please check back later.`;
         
       } catch (e) {
         console.error('LinkedIn processing error:', e);
