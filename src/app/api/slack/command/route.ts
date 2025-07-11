@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
           defaultKeyValueStoreId: string;
         }
 
-        const run = await client.actor("2SyF0bVxmgGr8IVCZ").call(input) as ApifyRunResult;
+        const run = await client.task("DbOcm7dOF7sYdld3P").call(input) as ApifyRunResult;
         
         // Fetch Actor results from the run's dataset
         console.log('Results from dataset');
@@ -121,21 +121,23 @@ export async function POST(request: NextRequest) {
 interface LinkedInProfile {
   fullName?: string;
   headline?: string;
-  location?: string;
-  summary?: string;
-  profileUrl?: string;
-  public_identifier?: string;
+  linkedinUrl?: string;
+  companyName?: string;
+  email?: string;
+  mobileNumber?: string;
+  companyWebsite?: string;
   // Add other potential fields that might be returned by Apify
 }
 
 interface AirtableRecord {
   fields: {
     Name: string;
-    Headline: string;
-    Location: string;
-    Summary: string;
-    URL: string;
-    Added: string;
+    Title: string;
+    Company: string;
+    LinkedIn_URL: string;
+    Work_email: string;
+    Phone_number: string;
+    Company_domain: string;
   }
 }
 
@@ -158,11 +160,12 @@ async function saveToAirtable(profile: LinkedInProfile): Promise<boolean> {
     const record: AirtableRecord = {
       fields: {
         Name: profile.fullName || '',
-        Headline: profile.headline || '',
-        Location: profile.location || '',
-        Summary: profile.summary || '',
-        URL: profile.profileUrl || '',
-        Added: new Date().toISOString()
+        Title: profile.headline || '',
+        Company: profile.companyName || '',
+        LinkedIn_URL: profile.linkedinUrl || '',
+        Work_email: profile.email || '',
+        Phone_number: profile.mobileNumber || '',
+        Company_domain: profile.companyWebsite || ''
       }
     };
     
