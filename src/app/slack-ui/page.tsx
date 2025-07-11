@@ -3,7 +3,7 @@
 import { useState } from 'react';
 
 export default function SlackUI() {
-  const [text, setText] = useState('');
+  // const [text, setText] = useState('');
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
   const [commandType, setCommandType] = useState('linkedin');
