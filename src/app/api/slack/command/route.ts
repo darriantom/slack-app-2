@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { ApifyClient } from 'apify-client';
 
 // This function processes incoming Slack slash commands
 export async function POST(request: NextRequest) {
@@ -44,6 +45,26 @@ export async function POST(request: NextRequest) {
         
         // For now, we'll just acknowledge receiving the URL since the linkedin-processor endpoint was deleted
         response = `✅ LinkedIn profile URL received: ${profileUrl}\n\nProfile processing is currently disabled to prevent timeouts. Please check back later.`;
+        const client = new ApifyClient({
+            token: process.env.APIFY_API_TOKEN  ,
+        });
+        
+        // Prepare Actor input
+        const input = {
+            "profileUrls": [
+              profileUrl
+            ]
+        };
+        
+        const run = await client.actor("2SyF0bVxmgGr8IVCZ").call(input);
+        
+        // Fetch and print Actor results from the run's dataset (if any)
+        console.log('Results from dataset');
+        const { items } = await client.dataset(run.defaultDatasetId).listItems();
+        items.forEach((item) => {
+            console.dir(item);
+        });
+        response += "i did!i did!i did!i did!i did!"
         
       } catch (e) {
         console.error('LinkedIn processing error:', e);
