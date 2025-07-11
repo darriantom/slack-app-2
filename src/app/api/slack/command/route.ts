@@ -1,15 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { ApifyClient } from 'apify-client';
 
-// Initialize the ApifyClient with API token
 // This function processes incoming Slack slash commands
 export async function POST(request: NextRequest) {
   try {
-    // Verify that the request is coming from Slack
-    // if (!verifySlackRequest(request)) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
-    
     // Parse the request body as form data (Slack sends data as form/url-encoded)
     const formData = await request.formData();
     
@@ -17,6 +10,7 @@ export async function POST(request: NextRequest) {
     const command = formData.get('command') as string;
     const text = formData.get('text') as string;
     const userId = formData.get('user_id') as string;
+    const responseUrl = formData.get('response_url') as string;
     
     // Basic validation
     if (!command || !userId) {
@@ -29,67 +23,47 @@ export async function POST(request: NextRequest) {
     // Process the command - this is where you'd add your service-related logic
     let response = '';
     
-    // Add a default timeout for the API requests
-    const timeout = 30000; // 30 seconds timeout
-    
     // Example service-related command processing based on input text
     if (text.includes('restart')) {
-        response = "⚠️ Error fetching LinkedIn profile. Please check that your APIFY_API_TOKEN is set correctly in environment variables.";
+        response = "Service restart command received.";
     } else if (text.includes('linkedin')) {
       try {
-        const client = new ApifyClient({
-            token: process.env.APIFY_API_TOKEN || '',
-        });
+        // Check if we have a LinkedIn URL in the text
+        const hasLinkedInUrl = text.match(/(https?:\/\/[^\s]+linkedin\.com\/in\/[^\s]+)/);
         
-        // Extract LinkedIn profile URL from the command text
-        const urlMatch = text.match(/(https?:\/\/[^\s]+)/);
-        const profileUrl = urlMatch ? urlMatch[0] : null;
-        
-        if (!profileUrl || !profileUrl.includes('linkedin.com/in/')) {
+        if (!hasLinkedInUrl) {
           return NextResponse.json({
             response_type: 'in_channel',
             text: "⚠️ Please provide a valid LinkedIn profile URL. Example: `/service linkedin https://www.linkedin.com/in/username`"
           });
         }
         
-        // Prepare Actor input with the extracted URL
-        const input = {
-            "profileUrls": [profileUrl]
-        };
+        // Start the asynchronous processing in the background
+        // We can't await this because Slack requires a response within 3 seconds
+        const processorFormData = new FormData();
+        processorFormData.append('text', text);
+        processorFormData.append('response_url', responseUrl);
         
-        response = "🔄 Starting LinkedIn profile fetch...";
+        // Fire and forget - don't await
+        fetch('/api/slack/linkedin-processor', {
+          method: 'POST',
+          body: processorFormData,
+        }).catch(err => {
+          console.error('Error starting LinkedIn processor:', err);
+        });
         
-        // Define the type for the Apify run result
-        type ApifyRunResult = {
-          id: string;
-          actId: string;
-          defaultDatasetId: string;
-          defaultKeyValueStoreId: string;
-        };
+        // Immediately return a response to Slack
+        return NextResponse.json({
+          response_type: 'in_channel',
+          text: "🔄 Processing LinkedIn profile request. This may take up to 2 minutes..."
+        });
         
-        // Call the Apify actor with timeout and proper typing
-        const run = await Promise.race([
-          client.actor("2SyF0bVxmgGr8IVCZ").call(input) as Promise<ApifyRunResult>,
-          new Promise<never>((_, reject) => 
-            setTimeout(() => reject(new Error("operation_timeout")), timeout)
-          )
-        ]);
-
-        // Fetch and print Actor results from the run's dataset (if any)
-        console.log('Results from dataset');
-        const { items } = await client.dataset(run.defaultDatasetId).listItems();
-        
-        if (items && items.length > 0) {
-          response = "LinkedIn profile fetched successfully:\n";
-          items.forEach((item) => {
-              response += `\n• ${item.fullName} - ${item.headline}`;
-          }); 
-        } else {
-          response += "\nNo profiles found.";
-        }
       } catch (e) {
-        console.error('Apify API error:', e);
-        response = "⚠️ Error fetching LinkedIn profiles. Please check server logs.";
+        console.error('LinkedIn processing error:', e);
+        return NextResponse.json({
+          response_type: 'in_channel',
+          text: "⚠️ Error processing LinkedIn request."
+        });
       }
     } else if (text.includes('metrics')) {
       response = "metrics";
