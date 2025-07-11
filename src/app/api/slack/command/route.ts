@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractLinkedInUrl, processLinkedInProfile } from './linkedinService';
-import { SlackCommandRequest } from './types';
+// import { SlackCommandRequest } from './types';
 
 export async function POST(request: NextRequest) {
   try {
