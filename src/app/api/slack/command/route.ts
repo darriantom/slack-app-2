@@ -34,67 +34,7 @@ export async function POST(request: NextRequest) {
     
     // Example service-related command processing based on input text
     if (text.includes('restart')) {
-      try {
-        const client = new ApifyClient({
-            token: process.env.APIFY_API_TOKEN || '',
-        });
-        
-        // Extract LinkedIn profile URL from the command text
-        const urlMatch = text.match(/(https?:\/\/[^\s]+)/);
-        const profileUrl = urlMatch ? urlMatch[0] : null;
-        
-        if (!profileUrl || !profileUrl.includes('linkedin.com/in/')) {
-          return NextResponse.json({
-            response_type: 'in_channel',
-            text: "⚠️ Please provide a valid LinkedIn profile URL. Example: `/command linkedin https://www.linkedin.com/in/username`"
-          });
-        }
-        
-        // Prepare Actor input with the URL from the command
-        const input = {
-            "profileUrls": [profileUrl]
-        };
-        
-        // Call the Apify actor with timeout
-        const run = await Promise.race([
-          client.actor("2SyF0bVxmgGr8IVCZ").call(input),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error("operation_timeout")), timeout)
-          )
-        ]);
-        
-        if (!run || !run.defaultDatasetId) {
-          return NextResponse.json({
-            response_type: 'in_channel',
-            text: "⚠️ Error: Could not create Apify actor run. Please check your API token."
-          });
-        }
-
-        // Fetch results from the dataset
-        const { items } = await client.dataset(run.defaultDatasetId).listItems();
-        
-        if (items && items.length > 0) {
-          response = `✅ LinkedIn profile fetched successfully:\n\n`;
-          const profile = items[0];
-          
-          // Build a formatted response with the profile data
-          response += `*Name:* ${profile.fullName || 'N/A'}\n`;
-          response += `*Headline:* ${profile.headline || 'N/A'}\n`;
-          if (profile.location) response += `*Location:* ${profile.location}\n`;
-          if (profile.summary) response += `*Summary:* ${profile.summary}\n`;
-        } else {
-          response = "⚠️ No profile data found. The profile might be private or the URL is incorrect.";
-        }
-      } catch (apiError) {
-        console.error('Apify API error:', apiError);
-        if (apiError.message === "operation_timeout") {
-          return NextResponse.json({
-            response_type: 'in_channel',
-            text: "⚠️ Operation timed out. The LinkedIn profile request took too long to complete."
-          });
-        }
         response = "⚠️ Error fetching LinkedIn profile. Please check that your APIFY_API_TOKEN is set correctly in environment variables.";
-      }
     } else if (text.includes('linkedin')) {
       try {
         const client = new ApifyClient({
