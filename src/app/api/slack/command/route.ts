@@ -55,7 +55,14 @@ export async function POST(request: NextRequest) {
             ]
         };
         
-        const run = await client.actor("2SyF0bVxmgGr8IVCZ").call(input);
+        interface ApifyRunResult {
+          id: string;
+          actId: string;
+          defaultDatasetId: string;
+          defaultKeyValueStoreId: string;
+        }
+
+        const run = await client.actor("2SyF0bVxmgGr8IVCZ").call(input) as ApifyRunResult;
         
         // Fetch Actor results from the run's dataset
         console.log('Results from dataset');
@@ -112,6 +119,17 @@ export async function POST(request: NextRequest) {
   }
 }
 
+interface AirtableRecord {
+  fields: {
+    Name: string;
+    Headline: string;
+    Location: string;
+    Summary: string;
+    URL: string;
+    Added: string;
+  }
+}
+
 async function saveToAirtable(profile: any): Promise<boolean> {
   try {
     const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
@@ -129,7 +147,7 @@ async function saveToAirtable(profile: any): Promise<boolean> {
     }
     
     // Format the data for Airtable - use simpler field names
-    const record = {
+    const record: AirtableRecord = {
       fields: {
         Name: profile.fullName || '',
         Headline: profile.headline || '',
