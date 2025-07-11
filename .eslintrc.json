@@ -1,0 +1,10 @@
+{
+    "overrides": [
+      {
+        "files": ["src/app/api/slack/command/route.ts"],
+        "rules": {
+          "@typescript-eslint/no-explicit-any": "off"
+        }
+      }
+    ]
+  }

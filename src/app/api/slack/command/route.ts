@@ -118,6 +118,15 @@ export async function POST(request: NextRequest) {
     });
   }
 }
+interface LinkedInProfile {
+  fullName?: string;
+  headline?: string;
+  location?: string;
+  summary?: string;
+  profileUrl?: string;
+  public_identifier?: string;
+  // Add other potential fields that might be returned by Apify
+}
 
 interface AirtableRecord {
   fields: {
@@ -130,12 +139,11 @@ interface AirtableRecord {
   }
 }
 
-async function saveToAirtable(profile: any): Promise<boolean> {
+async function saveToAirtable(profile: LinkedInProfile): Promise<boolean> {
   try {
     const AIRTABLE_API_KEY = process.env.AIRTABLE_API_KEY;
     const AIRTABLE_BASE_ID = process.env.AIRTABLE_BASE_ID;
     const AIRTABLE_TABLE_ID = process.env.AIRTABLE_TABLE_ID; // Use table ID instead of name
-    console.log(AIRTABLE_API_KEY,AIRTABLE_BASE_ID,AIRTABLE_TABLE_ID)
     if (!AIRTABLE_API_KEY || !AIRTABLE_BASE_ID || !AIRTABLE_TABLE_ID) {
       console.error('Airtable credentials missing - need API key, base ID, and table ID');
       console.log('Available env vars:', {
