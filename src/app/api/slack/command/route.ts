@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     const command = formData.get('command') as string;
     const text = formData.get('text') as string;
     const userId = formData.get('user_id') as string;
-    const responseUrl = formData.get('response_url') as string;
+    // const responseUrl = formData.get('response_url') as string;
     
     // Basic validation
     if (!command || !userId) {
