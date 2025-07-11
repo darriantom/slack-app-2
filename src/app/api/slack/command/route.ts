@@ -65,7 +65,6 @@ export async function POST(request: NextRequest) {
           actId: string;
           defaultDatasetId: string;
           defaultKeyValueStoreId: string;
-          [key: string]: any;
         };
         
         // Call the Apify actor with timeout and proper typing
