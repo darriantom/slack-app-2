@@ -1,14 +1,26 @@
- // Email validation service using Mail.so API
+// Email validation service using Mail.so API
 
-/**
- * Validates an email address using the Mail.so API
- * @param email The email address to validate
- * @returns An object with validation results
- */
-export async function validateEmail(email: string): Promise<{
+// Define a specific type for the email validation response
+interface EmailValidationResponse {
+    status?: string;
+    score?: number;
+    domain?: string;
+    isDisposable?: boolean;
+    isFree?: boolean;
+    hasInvalidFormat?: boolean;
+    hasMxRecords?: boolean;
+    [key: string]: unknown; // For any other properties returned by the API
+  }
+  
+  /**
+   * Validates an email address using the Mail.so API
+   * @param email The email address to validate
+   * @returns An object with validation results
+   */
+  export async function validateEmail(email: string): Promise<{
     isValid: boolean;
     score?: number;
-    details?: any;
+    details?: EmailValidationResponse;
   }> {
     if (!email || email.trim() === '') {
       return { isValid: false };

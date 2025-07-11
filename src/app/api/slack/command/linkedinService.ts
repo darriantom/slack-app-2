@@ -39,8 +39,8 @@ export async function processLinkedInProfile(profileUrl: string): Promise<{
       if (profile.email) {
         const emailValidation = await validateEmail(profile.email);
         emailStatus = emailValidation.isValid ? "✓ Valid" : "❌ Invalid";
+        console.log("email data ->",emailValidation,"<-")
       }
-      console.log(emailStatus)
       // Save the profile to Airtable
       const success = await saveToAirtable(profile);
       

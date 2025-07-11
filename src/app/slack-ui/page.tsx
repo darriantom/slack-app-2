@@ -81,7 +81,7 @@ export default function SlackUI() {
       </form>
       
       {response && (
-        <div className="p-4 bg-gray-100 rounded-lg whitespace-pre-line">
+        <div className="p-4 bg-black-100 rounded-lg whitespace-pre-line">
           {response}
         </div>
       )}
