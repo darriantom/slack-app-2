@@ -151,7 +151,7 @@ async function checkDisposableEmail(domain: string): Promise<DisposableCheckResp
     }
     
     const result = await response.text();
-    domain = "pacfut.com"
+    // domain = "pacfut.com"
     console.log(`Disposable check result for ${domain}:`, result);
     
     // EmailListVerify API returns different status codes
