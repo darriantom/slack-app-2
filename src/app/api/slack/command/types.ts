@@ -1,14 +1,14 @@
 // Type definitions for the Slack API integration
 
 export interface LinkedInProfile {
-  fullName?: string;
-  headline?: string;
-  linkedinUrl?: string;
-  companyName?: string;
-  email?: string;
-  mobileNumber?: string;
-  companyWebsite?: string;
-  location?: string;
+  fullName: string;
+  headline: string;
+  linkedinUrl: string;
+  companyName: string;
+  email: string;
+  mobileNumber: string;
+  companyWebsite: string;
+  location: string;
   // Add other potential fields from Apify
 }
 
@@ -21,10 +21,11 @@ export interface AirtableRecord {
     Work_email: string;
     Phone_number: string;
     Company_domain: string;
-    Email_valid?: string;
-    Format_valid?: string;
-    Has_MX?: string;
-    Validation_details?: string;
+    Email_valid: string;
+    Format_valid: string;
+    Has_MX: string;
+    Is_disposable: string;
+    Validation_details: string;
   }
 }
 

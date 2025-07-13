@@ -17,9 +17,16 @@ export async function saveToAirtable(profile: LinkedInProfile): Promise<boolean>
       return false;
     }
     
-    // First do a quick format check which doesn't rely on DNS
+    // First do a quick format check which doesn't rely on network calls
     let formatCheck = { isValid: false, domain: '' };
-    let fullValidation = { isValid: false, hasMx: false, formatValid: false, domain: '', details: '' };
+    let fullValidation = { 
+      isValid: false, 
+      hasMx: false, 
+      formatValid: false, 
+      isDisposable: false,
+      domain: '', 
+      details: '' 
+    };
     
     if (profile.email && profile.email.includes('@')) {
       // Always do the basic format check
@@ -50,6 +57,7 @@ export async function saveToAirtable(profile: LinkedInProfile): Promise<boolean>
         Email_valid: (fullValidation.isValid || formatCheck.isValid) ? 'Yes' : profile.email ? 'No' : '',
         Format_valid: (fullValidation.formatValid || formatCheck.isValid) ? 'Yes' : profile.email ? 'No' : '',
         Has_MX: fullValidation.hasMx ? 'Yes' : 'No',
+        Is_disposable: fullValidation.isDisposable ? 'Yes' : 'No',
         Validation_details: fullValidation.details || 'Format check only'
       }
     };

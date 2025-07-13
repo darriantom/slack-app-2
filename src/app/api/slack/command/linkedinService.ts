@@ -33,7 +33,7 @@ export async function processLinkedInProfile(profileUrl: string): Promise<{
     const { items } = await client.dataset(run.defaultDatasetId).listItems();
     
     if (items && items.length > 0) {
-      const profile = items[0] as LinkedInProfile;
+      const profile = items[0] as unknown as LinkedInProfile;
       
       let emailStatus = "Not found";
       if (profile.email) {
