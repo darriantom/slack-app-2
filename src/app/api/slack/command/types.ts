@@ -24,7 +24,6 @@ export interface AirtableRecord {
     Email_valid?: string;
     Format_valid?: string;
     Has_MX?: string;
-    SMTP_check?: string;
     Validation_details?: string;
   }
 }

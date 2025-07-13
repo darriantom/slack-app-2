@@ -1,5 +1,5 @@
 import { LinkedInProfile, AirtableRecord } from './types';
-import { validateEmailWithCache } from './emailService';
+import { validateEmailWithCache, validateEmailFormat } from './emailService';
 
 export async function saveToAirtable(profile: LinkedInProfile): Promise<boolean> {
   try {
@@ -17,15 +17,23 @@ export async function saveToAirtable(profile: LinkedInProfile): Promise<boolean>
       return false;
     }
     
-    // Validate email if present
-    let emailValidationResult = { isValid: false, hasMx: false, smtpCheck: false, formatValid: false, domain: '' };
+    // First do a quick format check which doesn't rely on DNS
+    let formatCheck = { isValid: false, domain: '' };
+    let fullValidation = { isValid: false, hasMx: false, formatValid: false, domain: '', details: '' };
+    
     if (profile.email && profile.email.includes('@')) {
-      console.log(`Attempting to validate email: ${profile.email}`);
+      // Always do the basic format check
+      formatCheck = validateEmailFormat(profile.email);
+      
+      // Attempt full validation with DNS checks, but handle errors gracefully
       try {
-        emailValidationResult = await validateEmailWithCache(profile.email);
-        console.log(`Email ${profile.email} validation result:`, emailValidationResult);
+        fullValidation = await validateEmailWithCache(profile.email);
+        console.log(`Email ${profile.email} validation result:`, fullValidation);
       } catch (emailError) {
-        console.error('Email validation error (continuing):', emailError);
+        console.error('Email validation error (continuing with format check only):', emailError);
+        fullValidation.formatValid = formatCheck.isValid;
+        fullValidation.domain = formatCheck.domain;
+        fullValidation.details = 'Validation limited to format check due to error';
       }
     }
     
@@ -38,12 +46,11 @@ export async function saveToAirtable(profile: LinkedInProfile): Promise<boolean>
         LinkedIn_URL: profile.linkedinUrl || '',
         Work_email: profile.email || '', // Store email regardless of validation
         Phone_number: profile.mobileNumber || '',
-        Company_domain: profile.companyWebsite || emailValidationResult.domain || '',
-        // Email_valid: emailValidationResult.isValid ? 'Yes' : profile.email ? 'No' : '',
-        // Format_valid: emailValidationResult.formatValid ? 'Yes' : profile.email ? 'No' : '',
-        // Has_MX: emailValidationResult.hasMx ? 'Yes' : profile.email ? 'No' : '',
-        // SMTP_check: emailValidationResult.smtpCheck ? 'Yes' : profile.email ? 'No' : '',
-        // Validation_details: emailValidationResult || ''
+        Company_domain: profile.companyWebsite || fullValidation.domain || '',
+        Email_valid: (fullValidation.isValid || formatCheck.isValid) ? 'Yes' : profile.email ? 'No' : '',
+        Format_valid: (fullValidation.formatValid || formatCheck.isValid) ? 'Yes' : profile.email ? 'No' : '',
+        Has_MX: fullValidation.hasMx ? 'Yes' : 'No',
+        Validation_details: fullValidation.details || 'Format check only'
       }
     };
     
