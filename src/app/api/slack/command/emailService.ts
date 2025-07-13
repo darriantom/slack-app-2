@@ -143,7 +143,7 @@ async function checkDisposableEmail(domain: string): Promise<DisposableCheckResp
     console.log(`Checking if ${domain} is a disposable email domain`);
     
     // Use the EmailListVerify API to check
-    let EMAIL_LIST_VERIFY_API_KEY = process.env.EMAIL_LIST_VERIFY_API_KEY
+    const EMAIL_LIST_VERIFY_API_KEY = process.env.EMAIL_LIST_VERIFY_API_KEY
     const response = await fetch(`https://apps.emaillistverify.com/api/verifyEmail?secret=${EMAIL_LIST_VERIFY_API_KEY}&email=test@${domain}`);
     
     if (!response.ok) {
