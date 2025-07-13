@@ -1,5 +1,5 @@
 import { LinkedInProfile, AirtableRecord } from './types';
-import { validateEmail } from './emailService';
+import { validateEmailWithCache } from './emailService';
 
 export async function saveToAirtable(profile: LinkedInProfile): Promise<boolean> {
   try {
@@ -16,15 +16,19 @@ export async function saveToAirtable(profile: LinkedInProfile): Promise<boolean>
       });
       return false;
     }
-
-    let emailValidationResult = { isValid: false };
-    let emailStatus = "Not found";
-    if (profile.email) {
-      emailValidationResult = await validateEmail(profile.email);
-      emailStatus = emailValidationResult.isValid ? "✓ Valid" : "❌ Invalid";
-      console.log(`Email ${profile.email} validation result:`, emailValidationResult.isValid ? 'Valid' : 'Invalid');
+    
+    // Validate email if present
+    let emailValidationResult = { isValid: false, hasMx: false, smtpCheck: false, formatValid: false, domain: '' };
+    if (profile.email && profile.email.includes('@')) {
+      console.log(`Attempting to validate email: ${profile.email}`);
+      try {
+        emailValidationResult = await validateEmailWithCache(profile.email);
+        console.log(`Email ${profile.email} validation result:`, emailValidationResult);
+      } catch (emailError) {
+        console.error('Email validation error (continuing):', emailError);
+      }
     }
-
+    
     // Format the data for Airtable
     const record: AirtableRecord = {
       fields: {
@@ -32,12 +36,18 @@ export async function saveToAirtable(profile: LinkedInProfile): Promise<boolean>
         Title: profile.headline || '',
         Company: profile.companyName || '',
         LinkedIn_URL: profile.linkedinUrl || '',
-        Work_email: profile.email || '',
+        Work_email: profile.email || '', // Store email regardless of validation
         Phone_number: profile.mobileNumber || '',
-        Company_domain: profile.companyWebsite || '',
-        Email_status: emailStatus || ''
+        Company_domain: profile.companyWebsite || emailValidationResult.domain || '',
+        // Email_valid: emailValidationResult.isValid ? 'Yes' : profile.email ? 'No' : '',
+        // Format_valid: emailValidationResult.formatValid ? 'Yes' : profile.email ? 'No' : '',
+        // Has_MX: emailValidationResult.hasMx ? 'Yes' : profile.email ? 'No' : '',
+        // SMTP_check: emailValidationResult.smtpCheck ? 'Yes' : profile.email ? 'No' : '',
+        // Validation_details: emailValidationResult || ''
       }
     };
+    
+    console.log('Saving record to Airtable:', JSON.stringify(record));
     
     // Use the direct table ID in the URL
     const url = `https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}`;
