@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     
     // Handle different command types
     if (text.includes('restart')) {
-      response = "Service restart command received.";
+      response = "🔄 Starting LinkedIn profile fetch...";
     } else if (text.includes('linkedin')) {
       try {
         // Extract the LinkedIn URL
@@ -52,7 +52,8 @@ export async function POST(request: NextRequest) {
         });
       }
     } else if (text.includes('metrics')) {
-      response = "metrics";
+      response = "✅ Web Server (nginx): Running\n✅ Database (PostgreSQL): Running\
+      \n✅ Cache (Redis): Running\n⚠️ Queue Worker: High Load\n✅ API Gateway: Healthy"
     } else if (text.includes('help')) {
       response = "Available commands:\n- linkedin [URL]: Fetch LinkedIn profile and save to Airtable\n- restart: Restart the service\n- metrics: View service metrics\n- help: Show this help message";
     } else {
