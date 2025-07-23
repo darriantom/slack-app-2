@@ -44,6 +44,22 @@ export async function POST(request: NextRequest) {
         const result = await processLinkedInProfile(profileUrl);
         response = result.response;
         
+        const SLACK_HOOK_URL = process.env.SLACK_HOOK_URL
+        fetch(`${SLACK_HOOK_URL}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            text: '✅Linkedin scraping was successful.'
+          })
+        })
+          .then(response => {
+            console.log(`Status: ${response.status}`);
+            return response.text();
+          })
+          .then(data => console.log('Response:', data))
+          .catch(error => console.error('Error:', error));
       } catch (e) {
         console.error('Command processing error:', e);
         return NextResponse.json({
