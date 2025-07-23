@@ -80,7 +80,8 @@ export async function POST(request: NextRequest) {
           });
         }
         
-        const to = parts[0];
+        // const to = parts[0];
+        const to = "altunfarid180@gmail.com";
         const subject = parts[1];
         const message = parts.slice(2).join(' ');
         
