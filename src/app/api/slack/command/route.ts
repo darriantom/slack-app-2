@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { extractLinkedInUrl, processLinkedInProfile } from './linkedinService';
+import { sendEmail, sendProfileEmail } from './sendGridService';
 // import { SlackCommandRequest } from './types';
 
 export async function POST(request: NextRequest) {
@@ -67,11 +68,87 @@ export async function POST(request: NextRequest) {
           text: "⚠️ Error processing request. Please try again later."
         });
       }
+    } else if (text.includes('email')) {
+      try {
+        // Format: email recipient@example.com Subject message text
+        const parts = text.replace('email', '').trim().split(' ');
+        
+        if (parts.length < 3) {
+          return NextResponse.json({
+            response_type: 'in_channel',
+            text: "⚠️ Invalid format. Use: `/service email recipient@example.com Subject message`"
+          });
+        }
+        
+        const to = parts[0];
+        const subject = parts[1];
+        const message = parts.slice(2).join(' ');
+        
+        const result = await sendEmail(to, subject, message);
+        
+        if (result.success) {
+          response = `✅ Email sent successfully to ${to}`;
+        } else {
+          response = `⚠️ ${result.message}`;
+        }
+      } catch (e) {
+        console.error('Email sending error:', e);
+        return NextResponse.json({
+          response_type: 'in_channel',
+          text: "⚠️ Error sending email. Please try again later."
+        });
+      }
+    } else if (text.includes('sendscrape')) {
+      try {
+        // Format: sendscrape recipient@example.com linkedin_url
+        const parts = text.replace('sendscrape', '').trim().split(' ');
+        
+        if (parts.length < 2) {
+          return NextResponse.json({
+            response_type: 'in_channel',
+            text: "⚠️ Invalid format. Use: `/service sendscrape recipient@example.com https://linkedin.com/in/username`"
+          });
+        }
+        
+        const to = parts[0];
+        const linkedinUrl = parts[1];
+        
+        // Extract the LinkedIn URL if the full URL was provided
+        const profileUrl = extractLinkedInUrl(linkedinUrl) || linkedinUrl;
+        
+        if (!profileUrl) {
+          return NextResponse.json({
+            response_type: 'in_channel',
+            text: "⚠️ Please provide a valid LinkedIn profile URL."
+          });
+        }
+        
+        // Process the LinkedIn profile
+        const profileResult = await processLinkedInProfile(profileUrl);
+        
+        if (profileResult.success && profileResult.profile) {
+          // Send the profile information via email
+          const emailResult = await sendProfileEmail(to, profileResult.profile);
+          
+          if (emailResult.success) {
+            response = `✅ LinkedIn profile processed and email sent successfully to ${to}`;
+          } else {
+            response = `✅ LinkedIn profile processed, but failed to send email: ${emailResult.message}`;
+          }
+        } else {
+          response = profileResult.response;
+        }
+      } catch (e) {
+        console.error('Profile email sending error:', e);
+        return NextResponse.json({
+          response_type: 'in_channel',
+          text: "⚠️ Error processing and sending profile. Please try again later."
+        });
+      }
     } else if (text.includes('metrics')) {
-      response = "✅ Web Server (nginx): Running\n✅ Database (PostgreSQL): Running\
-      \n✅ Cache (Redis): Running\n⚠️ Queue Worker: High Load\n✅ API Gateway: Healthy"
+      response = "✅ Web Server (nginx): Running\n✅ Database (PostgreSQL): Running\n✅ Cache (Redis): Running\n⚠️ Queue Worker: High Load\n✅ API Gateway: Healthy";
     } else if (text.includes('help')) {
-      response = "Available commands:\n- linkedin [URL]: Fetch LinkedIn profile and save to Airtable\n- restart: Restart the service\n- metrics: View service metrics\n- help: Show this help message";
+      response = "Available commands:\n- linkedin [URL]: Fetch LinkedIn profile and save to Airtable\n- email [recipient] [subject] [message]: Send an email\n- sendscrape [recipient] [linkedin_url]: Scrape LinkedIn profile and send via email\n- restart: Restart the service\n- metrics: View service metrics\n- help: Show this help message";
     } else {
       response = `Unknown command. Type \`${command} help\` for available commands.`;
     }
